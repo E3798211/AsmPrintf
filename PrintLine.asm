@@ -77,6 +77,7 @@ printLine:
 		call printHex
 		mov rsi, r14
 		mov rcx, r15
+		mov rdx, 1
 		jmp .end_processing
 .oct:
 		mov r15, rcx
@@ -84,6 +85,7 @@ printLine:
 		call printOct
 		mov rsi, r14
 		mov rcx, r15
+		mov rdx, 1
 		jmp .end_processing
 .bin:
 		mov r15, rcx
@@ -91,15 +93,26 @@ printLine:
 		call printBin
 		mov rsi, r14
 		mov rcx, r15
+		mov rdx, 1
 		jmp .end_processing
 .dec:
-;		call printDec
+		mov r15, rcx
+		mov r14, rsi
+		call printDec
+		mov rsi, r14
+		mov rcx, r15
+		mov rdx, 1
 		jmp .end_processing
 .chr:
-;		call printChr
+		mov r14, rsi
+		call printChr
+		mov rsi, r14
 		jmp .end_processing
 .str:
-;		call printStr
+		mov r14, rsi
+		call printStr
+		mov rsi, r14
+		jmp .end_processing
 
 ; ======================================
 

@@ -15,7 +15,8 @@ section .text
 ; ======================================
 
 _start:	
-		push 7770777h
+		mov  rax, TEST_STRING
+		push rax
 		
 		call printLine
 
@@ -30,12 +31,14 @@ _start:
 
 section .data
 
-MESSAGE		db	"Hello, %x World", 10, 0	; note the newline at the end
+MESSAGE		db	"Hello, %s World", 10, 0	; note the newline at the end
 MSG_LEN 	equ	$-MESSAGE		
 		
-BUFF		db	'0'
+BUFF		times 64 db '0'
 
-
+TEST_STRING db	"TestTestTest", 0
 
 ;			nasm -f elf64 printf.asm
 ;			ld printf.o -o printf
+
+
