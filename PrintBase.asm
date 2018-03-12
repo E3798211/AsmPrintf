@@ -20,12 +20,13 @@ printBin:
 
 		loop .next_digit
 
+		mov rax, 1
+		mov rdi, 1
 		mov rdx, 64d
 		mov rsi, BUFF	
 		syscall
 
-		;call flushBuff
-
+;		call flushBuff
 		ret
 
 ; ======================================
@@ -53,12 +54,13 @@ printOct:
 
 		loop .next_digit
 
+		mov rax, 1
+		mov rdi, 1
 		mov rdx, 64d
 		mov rsi, BUFF	
 		syscall
 
-		;call flushBuff
-
+;		call flushBuff
 		ret
 
 ; =======================================
@@ -86,17 +88,18 @@ printHex:
 .just_digit:
 		add r10, '0'
 
-		mov [esi], r10b				; Placing lowest byte to buff
+		mov [esi], r10b					; Placing lowest byte to buff
 		dec esi
 
 		loop .next_digit
 
+		mov rax, 1
+		mov rdi, 1
 		mov rdx, 64d
 		mov rsi, BUFF
 		syscall
 
-		;call flushBuff
-
+;		call flushBuff
 		ret
 
 ; ======================================
@@ -124,11 +127,13 @@ printDec:
 
 		loop .next_digit
 		
-		mov rax, 1						; Printing the whole buffer
+		mov rax, 1
+		mov rdi, 1
 		mov rdx, 64
 		mov esi, BUFF
 		syscall
 		
+;		call flushBuff
 		ret
 
 ; ======================================
@@ -142,11 +147,17 @@ printDec:
 ; Leaves:	...
 
 printChr:
-		mov [BUFF], r8b					; Placing char to buffer
+		mov byte [BUFF], r8b			; Placing char to buffer
 		
+		mov rax, 1
+		mov rdi, 1
 		mov rsi, BUFF
+		mov rdx, 1
 		syscall
 
+		mov byte [BUFF], '0'			; Restoring buffer
+
+;		call flushBuff
 		ret
 
 ; ======================================
@@ -160,7 +171,10 @@ printChr:
 ; Leaves:	...
 
 printStr:
+		mov rax, 1
+		mov rdi, 1
 		mov rsi, r8
+		mov rdx, 1
 .next:									; Kinda like infinite 'while'
 		cmp byte [rsi], 0
 		je .exit
@@ -169,24 +183,64 @@ printStr:
 		jmp .next
 
 .exit:
+;		call flushBuff
 		ret
 
-; =======================================
+; ======================================
 
-; Fills buffer with zeros
-; Expects:		nothing
-; Uses:			rcx, rsi
-; Leaves:		..
+; Prints special symbols
+; Expects:	symbol to be printed in r8b
+; Uses:		r8b, rsi, rcx, r11
+; Leaves:	...
 
+printSpec:
+		mov rax, 1
+		mov rdi, 1
+		mov rdx, 1
+		mov rsi, BUFF					; Setting syscall
+
+		cmp r8b, 'n'
+		je  .enter
+		cmp r8b, 'm'
+		je  .cat
+		jmp .default
+
+.enter:
+		mov byte [rsi], 10
+		jmp .print
+.cat:
+		mov byte [rsi],		'M'
+		mov byte [rsi + 1], 'E'
+		mov byte [rsi + 2], 'O'
+		mov byte [rsi + 3], 'W'
+		mov byte [rsi + 4], ':'
+		mov byte [rsi + 5], '3'
+		mov rdx, 6
+		jmp .print
+.default:
+		mov byte [BUFF], r8b
+
+.print:		
+		syscall
+		mov byte [BUFF], '0'
+
+;		call flushBuff
+		ret
+
+; ======================================
+
+; Expects:	nothing
+; Uses:		al, rcx, edi
+; Leaves:	...
 
 flushBuff:
-		mov rcx, 63
-		xor rsi, rsi
-.next:	
-		mov byte [MESSAGE + esi], 0
-		inc esi
-		loop .next
+nop
+nop
+nop
+		mov edi, BUFF
+		mov al,  0
+		mov rcx, 64
+rep		stosb
 		ret
-
 
 

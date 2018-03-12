@@ -197,5 +197,22 @@ flushBuff:
 		loop .next
 		ret
 
+; Fills buffer with zeros
+; Expects:		nothing
+; Uses:			rcx, rsi
+; Leaves:		..
+
+
+flushBuff:
+		mov rcx, 63d
+		mov rsi, 0
+.next:	
+		mov byte [BUFF + esi], 0
+		inc rsi
+		loop .next
+		
+		ret
+
+
 
 

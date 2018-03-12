@@ -17,26 +17,24 @@ printLine:
 		mov  rbx, 16					; Used for addressing. Next arg: bx+=8
 
 		xor rsi, rsi
-		mov esi, MESSAGE				; Loading string to ESI
-		mov rcx, MSG_LEN				; Setting counter with string's length
+		mov rsi, qword [rbp + rbx]		; Loading string
+		add rbx, 8
 .load:	
-		mov rax, 1
-        mov rdi, 1
-        mov rdx, 1						; Setting print
-
 		cmp byte [esi], 0				; Terminator
 		je  .exit
-		cmp byte [esi], '%'				; Analysing char
+		cmp byte [esi], '\'				; Screened symbol
+		je  .special
+		cmp byte [esi], '%'
 		jne .print						; Average - just print
 		
 		inc rsi							; Looking at the second character - must be base
 
-		mov r8,  [rbp + rbx]			; Loading parameter
+		mov r8, qword [rbp + rbx]		; Loading parameter
 		add rbx, 8
 
-;		SAVE COUNTER IN USELESS REGISTER
-		
 		cmp byte [esi], 'x'
+		je  .hex
+		cmp byte [esi], 'h'
 		je  .hex
 		cmp byte [esi], 'o'
 		je  .oct
@@ -49,22 +47,12 @@ printLine:
 		cmp byte [esi], 's'
 		je  .str
 
-		nop								; Unexpected specificator
+;		Unexpected specificator
 ;		CRY LIKE A BITCH ABOUT THE FAULT
-		jmp .end_processing
-
-.end_processing:
-		inc rsi
-;		RESTORE COUNTER
-
-
-.print:	
-		mov r15, rcx
-		syscall							; Writing one character
-		mov rcx, r15
-		inc rsi							; Pointing to the next character
-
-		loop .load
+		
+		mov  bl, byte [esi]
+		call error
+		jmp .exit
 
 ; ======================================
 ;
@@ -72,36 +60,24 @@ printLine:
 ;
 
 .hex:
-		mov r15, rcx
 		mov r14, rsi
 		call printHex
 		mov rsi, r14
-		mov rcx, r15
-		mov rdx, 1
 		jmp .end_processing
 .oct:
-		mov r15, rcx
 		mov r14, rsi
 		call printOct
 		mov rsi, r14
-		mov rcx, r15
-		mov rdx, 1
 		jmp .end_processing
 .bin:
-		mov r15, rcx
 		mov r14, rsi
 		call printBin
 		mov rsi, r14
-		mov rcx, r15
-		mov rdx, 1
 		jmp .end_processing
 .dec:
-		mov r15, rcx
 		mov r14, rsi
 		call printDec
 		mov rsi, r14
-		mov rcx, r15
-		mov rdx, 1
 		jmp .end_processing
 .chr:
 		mov r14, rsi
@@ -112,12 +88,70 @@ printLine:
 		mov r14, rsi
 		call printStr
 		mov rsi, r14
-		jmp .end_processing
+
+.end_processing:
+		inc rsi
+		jmp .load
+
+; ======================================
+;
+; Special symbols are printer here
+;
+
+.special:
+		inc rsi
+		mov r8b, byte [rsi]				; Placing element's specificator to r8b
+		mov r15, rsi					; Saving current place in string
+		call printSpec
+		mov rsi, r15					; Restoring place in string
+		inc rsi
+		jmp .load
+
+; ======================================
+
+
+.print:	
+		mov rax, 1
+        mov rdi, 1
+        mov rdx, 1						; Setting print
+		syscall
+		inc rsi
+
+		jmp .load
 
 ; ======================================
 
 .exit:
 		pop rbp
+		ret
+
+; ======================================
+
+; Prints error message about unexpected specificator
+; Expects:	wrong specificator in bl
+; Uses:		rax, rdx, rsi, rdi, BUFF, rcx, r11
+
+error:	
+		mov rax, 1
+		mov rdi, 1
+		mov rsi, ERROR_BEG
+		mov rdx, ERR_BEG_L
+		syscall
+
+		mov rax, 1
+		mov rdi, 1
+		mov byte [BUFF], bl
+		mov rsi,  BUFF
+		mov rdx, 1
+		syscall
+		mov byte [BUFF], 0
+		
+		mov rax, 1
+		mov rdi, 1
+		mov rsi, ERROR_END
+		mov rdx, ERR_END_L
+		syscall
+		
 		ret
 
 ; ======================================

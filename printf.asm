@@ -15,10 +15,18 @@ section .text
 ; ======================================
 
 _start:	
-		mov  rax, TEST_STRING
+		mov  rax, BUFF
+
+		push 777h
+		push 3802
+		push 0EDAh
+		push 0EDAh
+		push 'W'
+		push 0EDAh
+		mov  rax, MESSAGE
 		push rax
-		
 		call printLine
+
 
 ; ====	Done. Quitting program. ====
 		mov     eax, 60                 ; system call 60 is exit
@@ -31,14 +39,34 @@ _start:
 
 section .data
 
-MESSAGE		db	"Hello, %s World", 10, 0	; note the newline at the end
-MSG_LEN 	equ	$-MESSAGE		
-		
+; Service
 BUFF		times 64 db '0'
+ERROR_BEG	db 10,27,"[31mSorry, '"
+ERR_BEG_L	equ $-ERROR_BEG
+ERROR_END	db "' doesn't supported.",27,"[0m", 10
+ERR_END_L	equ $-ERROR_END
+
+
+
+; User's
+MESSAGE		db	"\m\%",10, 0
+MSG_LEN 	equ	$-MESSAGE
 
 TEST_STRING db	"TestTestTest", 0
 
+
+
+
+
+
+
+
+
+
+
 ;			nasm -f elf64 printf.asm
 ;			ld printf.o -o printf
-
+;
+;
+;
 
